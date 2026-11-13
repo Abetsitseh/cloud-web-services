@@ -416,7 +416,7 @@ export function startServer(environment = process.env) {
     throw new RangeError("PORT doit être un entier entre 0 et 65535.");
   }
 
-  const host = environment.HOST || "127.0.0.1";
+  const host = environment.HOST || "0.0.0.0";
   const server = createDeploymentServer();
   server.listen(port, host, () => {
     console.log("Console Google Cloud Web Services active sur http://" + host + ":" + port);
