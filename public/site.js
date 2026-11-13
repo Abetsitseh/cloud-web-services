@@ -88,6 +88,53 @@ async function refreshDashboard() {
   updateLogsSelect(services);
 }
 
+function generateUuid() {
+  if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+function generateXrayLinks(service) {
+  const host = window.location.hostname || "127.0.0.1";
+  const isHttps = window.location.protocol === "https:";
+  const port = window.location.port ? window.location.port : (isHttps ? "443" : "80");
+  const security = isHttps ? "tls" : "none";
+  const uuid = service.xray?.uuid || "11111111-2222-3333-4444-555555555555";
+  const rawPath = service.xray?.wsPath || `/services/${service.name}/ws`;
+  const wsPath = rawPath.startsWith("/") ? rawPath : "/" + rawPath;
+  const remark = encodeURIComponent(service.name + "-cloud");
+
+  // VLESS officiel pour v2rayNG / v2rayN / Nekobox / Shadowrocket
+  const vless = `vless://${uuid}@${host}:${port}?encryption=none&security=${security}&type=ws&host=${host}&path=${encodeURIComponent(wsPath)}#${remark}`;
+
+  // VMess JSON en Base64
+  const vmessObj = {
+    v: "2",
+    ps: service.name + "-cloud",
+    add: host,
+    port: String(port),
+    id: uuid,
+    aid: "0",
+    scy: "auto",
+    net: "ws",
+    type: "none",
+    host: host,
+    path: wsPath,
+    tls: security,
+  };
+  let vmess = "";
+  try {
+    vmess = "vmess://" + btoa(unescape(encodeURIComponent(JSON.stringify(vmessObj))));
+  } catch {
+    vmess = "vmess://" + btoa(JSON.stringify(vmessObj));
+  }
+
+  return { vless, vmess, host, port, security, uuid, wsPath };
+}
+
 function renderServicesGrid(services) {
   if (!servicesCardsGrid || !emptyServicesMessage) return;
 
@@ -109,11 +156,13 @@ function renderServicesGrid(services) {
     const isRunning = service.status === "RUNNING";
     const statusClass = isRunning ? "status-running" : "status-stopped";
     const statusLabel = isRunning ? "🟢 EN LIGNE" : "🔴 ARRÊTÉ";
+    const isXray = Boolean(service.isXray || (service.xray && service.xray.enabled));
+    const xrayLinks = isXray ? generateXrayLinks(service) : null;
 
     card.innerHTML = `
       <div class="service-card-header">
         <div>
-          <h3 class="service-card-title">${escapeHtml(service.name)}</h3>
+          <h3 class="service-card-title">${escapeHtml(service.name)} ${isXray ? '<span style="font-size: 0.72rem; color: #8ab4f8; background: rgba(26,115,232,0.2); padding: 2px 6px; border-radius: 4px; vertical-align: middle;">⚡ XRAY VPN</span>' : ''}</h3>
           <small class="service-revision-text">${escapeHtml(service.revision || service.name)}</small>
         </div>
         <span class="service-status-pill ${statusClass}">${statusLabel}</span>
@@ -126,6 +175,33 @@ function renderServicesGrid(services) {
         <div class="service-meta-item"><span>Exécution</span><strong style="color: ${service.isRealDocker ? '#81c995' : '#8ab4f8'};">${service.runtimeMode || (service.isRealDocker ? 'Docker Engine Réel' : 'Émulateur Cloud Run')}</strong></div>
         <div class="service-meta-item"><span>Uptime</span><strong>${service.uptimeSeconds || 0} s</strong></div>
       </div>
+      ${
+        isXray && xrayLinks
+          ? `
+          <div class="xray-card-box" style="margin: 12px 0; padding: 12px; background: rgba(26, 115, 232, 0.09); border: 1px solid rgba(26, 115, 232, 0.3); border-radius: 8px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <strong style="color: #8ab4f8; font-size: 0.82rem; display: flex; align-items: center; gap: 6px;">
+                ⚡ CONFIGURATION CLIENT XRAY (VLESS / VMESS)
+              </strong>
+              <span style="font-size: 0.7rem; color: #81c995; background: rgba(52, 168, 83, 0.15); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(52, 168, 83, 0.3);">Import 1-Clic v2rayNG</span>
+            </div>
+            <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+              <input type="text" readonly value="${escapeHtml(xrayLinks.vless)}" style="flex: 1; font-family: monospace; font-size: 0.75rem; background: #131418; border: 1px solid #3c4043; color: #8ab4f8; padding: 6px 8px; border-radius: 4px;" title="Lien VLESS">
+              <button type="button" class="service-btn copy-btn" data-copy="${escapeHtml(xrayLinks.vless)}" style="background: #1a73e8; color: #fff; font-size: 0.75rem; padding: 6px 10px; white-space: nowrap;">📋 Copier VLESS</button>
+              <button type="button" class="service-btn copy-btn" data-copy="${escapeHtml(xrayLinks.vmess)}" style="background: #3c4043; color: #fff; font-size: 0.75rem; padding: 6px 10px; white-space: nowrap;">📋 Copier VMess</button>
+            </div>
+            <div style="font-size: 0.72rem; color: #bdc1c6; display: flex; flex-wrap: wrap; gap: 8px 14px;">
+              <span>Hôte: <b style="color: #fff;">${escapeHtml(xrayLinks.host)}</b></span>
+              <span>Port: <b style="color: #fff;">${escapeHtml(String(xrayLinks.port))}</b></span>
+              <span>Sécurité: <b style="color: #fff;">${escapeHtml(xrayLinks.security)}</b></span>
+              <span>Transport: <b style="color: #fff;">WebSocket (ws)</b></span>
+              <span>Chemin (Path): <b style="color: #fff;">${escapeHtml(xrayLinks.wsPath)}</b></span>
+              <span>UUID: <b style="color: #fff; font-family: monospace;">${escapeHtml(xrayLinks.uuid.slice(0, 8))}…</b></span>
+            </div>
+          </div>
+          `
+          : ""
+      }
       <div class="service-actions-row">
         <a class="service-btn service-btn-open" href="${service.url}" target="_blank" rel="noopener noreferrer">Ouvrir le service ↗</a>
         ${
@@ -222,17 +298,75 @@ document.querySelectorAll(".chip-btn").forEach((chip) => {
     const imageName = chip.getAttribute("data-image");
     const port = chip.getAttribute("data-port");
     const name = chip.getAttribute("data-name");
+    const isXray = chip.getAttribute("data-xray") === "true";
 
     const imageInput = document.querySelector("#image");
     const portInput = document.querySelector("#internal-port");
     const nameInput = document.querySelector("#app-name");
+    const xrayCheckbox = document.querySelector("#xray-enabled");
+    const xrayDetails = document.querySelector("#xray-details");
+    const xrayUuidInput = document.querySelector("#xray-uuid");
+    const xrayWsPathInput = document.querySelector("#xray-wspath");
 
     if (imageInput) imageInput.value = imageName;
     if (portInput) portInput.value = port;
-    if (nameInput) nameInput.value = name + "-" + Math.floor(Math.random() * 900 + 100);
+    const generatedName = name + "-" + Math.floor(Math.random() * 900 + 100);
+    if (nameInput) nameInput.value = generatedName;
+
+    if (xrayCheckbox) {
+      xrayCheckbox.checked = isXray;
+      if (xrayDetails) xrayDetails.hidden = !isXray;
+      if (isXray) {
+        if (xrayUuidInput && !xrayUuidInput.value) xrayUuidInput.value = generateUuid();
+        if (xrayWsPathInput) xrayWsPathInput.value = `/services/${generatedName}/ws`;
+      }
+    }
 
     form.scrollIntoView({ behavior: "smooth" });
   });
+});
+
+// Xray VPN UI toggles & UUID generator
+const xrayCheckbox = document.querySelector("#xray-enabled");
+const xrayDetails = document.querySelector("#xray-details");
+const generateUuidBtn = document.querySelector("#generate-uuid-btn");
+const xrayUuidInput = document.querySelector("#xray-uuid");
+const xrayWsPathInput = document.querySelector("#xray-wspath");
+
+if (xrayCheckbox && xrayDetails) {
+  xrayCheckbox.addEventListener("change", () => {
+    xrayDetails.hidden = !xrayCheckbox.checked;
+    if (xrayCheckbox.checked) {
+      if (xrayUuidInput && !xrayUuidInput.value) xrayUuidInput.value = generateUuid();
+      if (xrayWsPathInput && !xrayWsPathInput.value) {
+        const appName = document.querySelector("#app-name")?.value?.trim() || "xray-vpn";
+        xrayWsPathInput.value = `/services/${appName}/ws`;
+      }
+    }
+  });
+}
+
+if (generateUuidBtn && xrayUuidInput) {
+  generateUuidBtn.addEventListener("click", () => {
+    xrayUuidInput.value = generateUuid();
+  });
+}
+
+// Clipboard copy delegation
+document.addEventListener("click", (e) => {
+  const copyBtn = e.target.closest("button.copy-btn[data-copy]");
+  if (copyBtn) {
+    const text = copyBtn.getAttribute("data-copy");
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = copyBtn.textContent;
+        copyBtn.textContent = "✓ Copié !";
+        setTimeout(() => (copyBtn.textContent = orig), 2000);
+      });
+    } else {
+      prompt("Copiez le lien manuellement :", text);
+    }
+  }
 });
 
 // Add environment variable row
@@ -329,6 +463,9 @@ form.addEventListener("submit", async (event) => {
   const concurrency = Number(form.elements.namedItem("concurrency")?.value || 80);
   const timeoutSeconds = Number(form.elements.namedItem("timeoutSeconds")?.value || 300);
   const ingress = form.elements.namedItem("ingress")?.value || "all";
+  const isXray = Boolean(form.elements.namedItem("isXray")?.checked);
+  const uuid = form.elements.namedItem("uuid")?.value?.trim() || null;
+  const wsPath = form.elements.namedItem("wsPath")?.value?.trim() || null;
   const env = collectEnvVars();
 
   const body = {
@@ -344,6 +481,9 @@ form.addEventListener("submit", async (event) => {
     timeoutSeconds,
     ingress,
     env,
+    isXray,
+    uuid,
+    wsPath,
   };
 
   try {

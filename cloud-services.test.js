@@ -183,3 +183,21 @@ test("server provides complete Google Cloud Web Services REST API and autonomous
   const notFound = await requestServer(server, "/api/services/mon-cloud-service");
   assert.equal(notFound.status, 404);
 });
+
+test("engine and server support Xray VLESS/VMess WebSocket VPN configuration", async () => {
+  const service = await containerEngine.deployService({
+    appName: "vpn-node-xray",
+    image: "teddysun/xray:latest",
+    internalPort: 8080,
+    isXray: true,
+  });
+
+  assert.equal(service.name, "vpn-node-xray");
+  assert.equal(service.xray.enabled, true);
+  assert.equal(service.xray.protocol, "vless");
+  assert.ok(service.xray.uuid.length === 36);
+  assert.equal(service.xray.wsPath, "/services/vpn-node-xray/ws");
+
+  // Nettoyage
+  await containerEngine.deleteService("vpn-node-xray");
+});

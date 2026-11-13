@@ -1611,6 +1611,16 @@ h2 {
   border-color: #38bdf8;
 }
 
+.chip-xray {
+  border-color: rgba(26, 115, 232, 0.5) !important;
+  background: rgba(26, 115, 232, 0.15) !important;
+  color: #8ab4f8 !important;
+}
+
+.chip-xray:hover {
+  background: rgba(26, 115, 232, 0.3) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

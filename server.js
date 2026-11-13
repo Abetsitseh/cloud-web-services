@@ -1,4 +1,5 @@
 import { createServer, request as httpRequest } from "node:http";
+import net from "node:net";
 import { readFile } from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -77,7 +78,7 @@ export function validateDeploymentInput(body) {
   }
 
   const appName = body.appName || body.serviceName;
-  const { image, region = "europe-west9", internalPort = 8080, memoryMb = 512, cpus = 1, minInstances = 0, maxInstances = 10, concurrency = 80, timeoutSeconds = 300, ingress = "all", env = {} } = body;
+  const { image, region = "europe-west9", internalPort = 8080, memoryMb = 512, cpus = 1, minInstances = 0, maxInstances = 10, concurrency = 80, timeoutSeconds = 300, ingress = "all", env = {}, isXray = false, uuid = null, wsPath = null } = body;
 
   if (typeof appName !== "string" || !/^[a-z0-9][a-z0-9-]{0,62}$/.test(appName)) {
     throw new HttpError(400, "Le nom du service web Google Cloud doit être en minuscules (1-63 caractères, lettres, chiffres ou tirets).");
@@ -115,6 +116,9 @@ export function validateDeploymentInput(body) {
     timeoutSeconds: Math.max(1, Number(timeoutSeconds) || 300),
     ingress: ingress === "internal" ? "internal" : "all",
     env: typeof env === "object" && env !== null ? env : {},
+    isXray: Boolean(isXray || (typeof image === "string" && (image.includes("xray") || image.includes("v2ray")))),
+    uuid: typeof uuid === "string" && uuid.trim() ? uuid.trim() : null,
+    wsPath: typeof wsPath === "string" && wsPath.trim() ? wsPath.trim() : null,
   };
 }
 
@@ -348,6 +352,8 @@ export function createDeploymentServer({
             localUrl: `/services/${service.name}/`,
             directUrl: `http://127.0.0.1:${service.hostPort}`,
             status: service.status,
+            xray: service.xray,
+            isXray: service.xray?.enabled,
           };
         }
         sendJson(response, 201, result);
@@ -394,7 +400,7 @@ export function createDeploymentServer({
     }
   }
 
-  return createServer((request, response) => {
+  const server = createServer((request, response) => {
     handleRequest(request, response).catch((error) => {
       if (response.headersSent) {
         response.destroy();
@@ -408,6 +414,39 @@ export function createDeploymentServer({
       sendJson(response, 500, { error: "Erreur interne du serveur." });
     });
   });
+
+  // Support proxying WebSockets pour protocoles Xray (VLESS / VMess WebSocket)
+  server.on("upgrade", (req, clientSocket, head) => {
+    const url = new URL(req.url || "/", "http://localhost");
+    const serviceMatch = url.pathname.match(/^\/services\/([a-z0-9][a-z0-9-]{0,62})(\/.*)?$/);
+    if (!serviceMatch) {
+      clientSocket.destroy();
+      return;
+    }
+    const [, serviceName] = serviceMatch;
+    const service = engine.getService(serviceName);
+    if (!service || service.status !== "RUNNING" || !service.hostPort) {
+      clientSocket.destroy();
+      return;
+    }
+
+    const proxySocket = net.connect(service.hostPort, "127.0.0.1", () => {
+      let rawRequest = `${req.method} ${req.url} HTTP/1.1\r\n`;
+      for (let i = 0; i < req.rawHeaders.length; i += 2) {
+        rawRequest += `${req.rawHeaders[i]}: ${req.rawHeaders[i + 1]}\r\n`;
+      }
+      rawRequest += "\r\n";
+      proxySocket.write(rawRequest);
+      if (head && head.length) proxySocket.write(head);
+      proxySocket.pipe(clientSocket);
+      clientSocket.pipe(proxySocket);
+    });
+
+    proxySocket.on("error", () => clientSocket.destroy());
+    clientSocket.on("error", () => proxySocket.destroy());
+  });
+
+  return server;
 }
 
 export function startServer(environment = process.env) {

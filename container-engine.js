@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import os from "node:os";
 import net from "node:net";
 import { execFile } from "node:child_process";
@@ -47,6 +47,9 @@ class ServiceInstance {
     timeoutSeconds = 300,
     ingress = "all",
     env = {},
+    isXray = false,
+    uuid = null,
+    wsPath = null,
   }) {
     this.id = "srv-" + randomBytes(6).toString("hex");
     this.name = appName;
@@ -61,7 +64,32 @@ class ServiceInstance {
     this.concurrency = Number(concurrency) || 80;
     this.timeoutSeconds = Number(timeoutSeconds) || 300;
     this.ingress = ingress;
-    this.env = { ...env, PORT: String(this.internalPort), HOST: "0.0.0.0" };
+
+    const isXrayService = Boolean(
+      isXray ||
+      (typeof image === "string" && (image.includes("xray") || image.includes("v2ray")))
+    );
+    const xrayUuid = (typeof uuid === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid))
+      ? uuid
+      : randomUUID();
+    const xrayWsPath = typeof wsPath === "string" && wsPath.trim()
+      ? (wsPath.startsWith("/") ? wsPath.trim() : "/" + wsPath.trim())
+      : `/services/${appName}/ws`;
+
+    this.xray = {
+      enabled: isXrayService,
+      uuid: xrayUuid,
+      wsPath: xrayWsPath,
+      protocol: "vless",
+      transport: "ws",
+    };
+
+    this.env = {
+      ...env,
+      PORT: String(this.internalPort),
+      HOST: "0.0.0.0",
+      ...(isXrayService ? { UUID: xrayUuid, WSPATH: xrayWsPath, PROTOCOL: "vless" } : {}),
+    };
     this.hostPort = 0;
     this.status = "STARTING";
     this.createdAt = new Date().toISOString();
@@ -364,6 +392,8 @@ class ServiceInstance {
       status: this.status,
       isRealDocker: this.isRealDocker,
       runtimeMode: this.isRealDocker ? "Docker Engine Réel" : "Émulateur Autonome Cloud Run",
+      isXray: this.xray.enabled,
+      xray: this.xray,
       memoryMb: this.memoryMb,
       cpus: this.cpus,
       minInstances: this.minInstances,
@@ -405,7 +435,7 @@ export class ContainerEngine {
   }
 
   async deployService(params) {
-    const { appName, image, region, internalPort, memoryMb, cpus, minInstances, maxInstances, concurrency, timeoutSeconds, ingress, env } = params;
+    const { appName, image, region, internalPort, memoryMb, cpus, minInstances, maxInstances, concurrency, timeoutSeconds, ingress, env, isXray, uuid, wsPath } = params;
 
     let service = this.getService(appName);
     if (service) {
@@ -420,6 +450,11 @@ export class ContainerEngine {
       service.concurrency = concurrency !== undefined ? Number(concurrency) : service.concurrency;
       service.timeoutSeconds = timeoutSeconds !== undefined ? Number(timeoutSeconds) : service.timeoutSeconds;
       service.ingress = ingress || service.ingress;
+      if (isXray || (image && (image.includes("xray") || image.includes("v2ray")))) {
+        service.xray.enabled = true;
+        if (uuid) service.xray.uuid = uuid;
+        if (wsPath) service.xray.wsPath = wsPath;
+      }
       service.env = { ...service.env, ...env };
       service.revision = `${appName}-0000${Math.floor(Math.random() * 89 + 10)}-gcp`;
 
