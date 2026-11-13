@@ -1,0 +1,16 @@
+.git
+.gitignore
+.dockerignore.example
+.env
+.env.*
+!.env.example
+.npmrc
+node_modules
+npm-debug.log*
+.venv
+__pycache__/
+*.py[cod]
+.pytest_cache/
+coverage/
+*.pem
+*.key

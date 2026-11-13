@@ -1,0 +1,12 @@
+# Environnement et secrets
+.env
+.env.*
+!.env.example
+
+# Dépendances et caches
+node_modules/
+npm-debug.log*
+
+# Système et logs
+.DS_Store
+Thumbs.db

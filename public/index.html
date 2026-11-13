@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Google Cloud Web Service - Console de déploiement et de pilotage de services web conteneurisés autonome, sans facturation."
+    >
+    <meta name="theme-color" content="#1a73e8">
+    <title>Google Cloud Web Service — Console Cloud Run</title>
+    <link rel="stylesheet" href="./site.css">
+    <script src="./site.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#contenu">Aller au contenu</a>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="#accueil" aria-label="Google Cloud Web Service, accueil">
+          <span class="gcp-mark" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#4285F4"/>
+            </svg>
+          </span>
+          <span class="brand-text">GOOGLE CLOUD <span class="brand-light">· WEB SERVICES</span></span>
+        </a>
+        <nav class="main-nav" aria-label="Navigation principale">
+          <a href="#services-section">Services actifs</a>
+          <a href="#guide">Créer un service</a>
+          <a href="#monitoring-section">Monitoring</a>
+          <a href="#logs-section">Journaux Cloud</a>
+          <a href="#questions">Documentation</a>
+        </nav>
+        <div class="header-project-badge">
+          <span class="project-pill">PROJET : cloud-web-prod</span>
+          <span class="region-pill">📍 europe-west9 (Paris)</span>
+          <a class="button button-small button-primary" href="#guide">Créer un service <span aria-hidden="true">+</span></a>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenu">
+      <section class="kpi-banner">
+        <div class="container kpi-inner">
+          <div class="kpi-item">
+            <span class="kpi-label">MOTEUR GOOGLE CLOUD</span>
+            <strong class="kpi-value kpi-live"><span class="status-dot-active" aria-hidden="true"></span> Actif & Indépendant (0 € · Sans Facturation)</strong>
+          </div>
+          <div class="kpi-item">
+            <span class="kpi-label">SERVICES EN LIGNE</span>
+            <strong class="kpi-value" id="kpi-services-count">0</strong>
+          </div>
+          <div class="kpi-item">
+            <span class="kpi-label">REQUÊTES REÇUES</span>
+            <strong class="kpi-value" id="kpi-requests-count">0</strong>
+          </div>
+          <div class="kpi-item">
+            <span class="kpi-label">RÉGION ACTIVE</span>
+            <strong class="kpi-value">europe-west9 (Paris)</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="hero section-space" id="accueil" aria-labelledby="hero-title">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> GOOGLE CLOUD RUN · SERVICES WEB CONTENEURISÉS</p>
+            <h1 id="hero-title">Déployez vos conteneurs<br>sur le cloud, <span>instantanément.</span></h1>
+            <p class="hero-lead">
+              Console de gestion et d’hébergement de conteneurs Docker sans serveur.
+              Routage direct via reverse-proxy, autoscaling vers zéro, télémétrie en temps réel et streaming des journaux.
+              Totalement gratuit, sans compte bancaire ni facturation.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#guide">Créer un service web <span aria-hidden="true">↓</span></a>
+              <a class="text-link" href="#services-section">Explorer les services actifs <span aria-hidden="true">→</span></a>
+            </div>
+            <ul class="hero-facts" aria-label="Caractéristiques">
+              <li><span aria-hidden="true">01</span> Image Docker / Registre</li>
+              <li><span aria-hidden="true">02</span> Moteur Cloud Autonome</li>
+              <li><span aria-hidden="true">03</span> Zéro Facturation (Gratuit)</li>
+            </ul>
+          </div>
+
+          <aside class="flow-card" aria-label="Étapes du déploiement Cloud Run">
+            <div class="flow-card-heading">
+              <span class="eyebrow">CYCLE DE VIE CLOUD RUN</span>
+              <span class="flow-count">3 ÉTAPES</span>
+            </div>
+            <ol class="flow-list">
+              <li>
+                <span class="flow-index">01</span>
+                <div><h2>Configuration du conteneur</h2><p>Image, mémoire, vCPU et concurrence</p></div>
+                <span class="flow-status">PRÊT</span>
+              </li>
+              <li>
+                <span class="flow-index">02</span>
+                <div><h2>Création de la révision</h2><p>Instanciation et contrôle d’intégrité</p></div>
+                <span class="flow-arrow" aria-hidden="true">↓</span>
+              </li>
+              <li>
+                <span class="flow-index">03</span>
+                <div><h2>Routage du trafic</h2><p>100% du trafic acheminé sur l’URL</p></div>
+                <span class="flow-status">EN LIGNE</span>
+              </li>
+            </ol>
+            <div class="flow-card-footer">
+              <span class="flow-footer-mark" aria-hidden="true">↗</span>
+              <div><span>SERVICE WEB</span><strong>URL dédiée avec proxy inverse</strong></div>
+              <span class="status-dot" aria-hidden="true"></span>
+            </div>
+            <p class="flow-note">Accès direct et immédiat. Aucune clé d’administrateur requise.</p>
+          </aside>
+        </div>
+      </section>
+
+      <!-- Section des services actifs (Google Cloud Run Dashboard) -->
+      <section class="section-space services-dashboard" id="services-section" aria-labelledby="services-title">
+        <div class="container">
+          <div class="section-heading-split">
+            <div>
+              <p class="eyebrow">CONSOLE DE GESTION CLOUD RUN</p>
+              <h2 id="services-title">Services Web Conteneurisés Actifs</h2>
+            </div>
+            <div class="dashboard-controls">
+              <button class="button button-small button-outline" id="refresh-services-btn" type="button">Actualiser ⟳</button>
+            </div>
+          </div>
+
+          <div class="services-container" id="services-list-container">
+            <div class="empty-services-state" id="empty-services-message">
+              <div class="empty-icon" aria-hidden="true">📦</div>
+              <h3>Aucun service web conteneurisé pour le moment</h3>
+              <p>Configurez et déployez votre premier conteneur avec le formulaire Google Cloud Run ci-dessous.</p>
+              <a class="button button-primary" href="#guide">Créer un service web</a>
+            </div>
+            <div class="services-cards-grid" id="services-cards-grid" hidden></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Formulaire de paramétrage Google Cloud Run -->
+      <section class="guide-section section-space" id="guide" aria-labelledby="guide-title">
+        <div class="container guide-grid">
+          <div class="guide-copy">
+            <p class="eyebrow">PARAMÉTRAGE GOOGLE CLOUD SERVICE</p>
+            <h2 id="guide-title">Créer un service web Cloud Run</h2>
+            <p class="section-intro">
+              Définissez les paramètres de votre service selon les standards de Google Cloud Run.
+              Le service sera immédiatement hébergé, configuré et disponible sur son URL locale dédiée.
+            </p>
+
+            <div class="presets-box">
+              <span class="presets-title">Gabarits rapides de conteneurs certifiés :</span>
+              <div class="presets-chips">
+                <button class="chip-btn" type="button" data-image="nginx:alpine" data-port="80" data-name="serveur-nginx">🌐 Nginx Web Server</button>
+                <button class="chip-btn" type="button" data-image="node:20-alpine" data-port="8080" data-name="api-nodejs">🟢 Node.js Microservice</button>
+                <button class="chip-btn" type="button" data-image="python:3.12-slim" data-port="5000" data-name="api-python">🐍 Python Web App</button>
+                <button class="chip-btn" type="button" data-image="gcr.io/google-samples/hello-app:1.0" data-port="8080" data-name="hello-cloud">🚀 Google Sample Hello App</button>
+              </div>
+            </div>
+
+            <div class="billing-note-box">
+              <span class="billing-icon" aria-hidden="true">🛡️</span>
+              <div>
+                <strong>Zéro Facturation & Accès Libre</strong>
+                <p>Cette console fonctionne en autonomie complète. Aucun compte de facturation, moyen de paiement ou abonnement n'est requis.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="workflow-panel deployment-panel">
+            <div class="workflow-heading">
+              <span class="eyebrow">GOOGLE CLOUD RUN</span>
+              <h3>Configuration du service</h3>
+              <p>Paramétrez l'image Docker, l'allocation matérielle et le comportement réseau.</p>
+            </div>
+            <p class="server-status" id="server-status" role="status" aria-live="polite">Connexion à la console Google Cloud…</p>
+
+            <form id="deploy-form">
+              <fieldset id="deploy-fields">
+                <div class="form-grid">
+                  <!-- Section Identité du service -->
+                  <div class="form-field form-field-wide">
+                    <label for="app-name">Nom du service web</label>
+                    <input id="app-name" name="appName" type="text" pattern="[a-z0-9][a-z0-9-]{0,62}" maxlength="63" autocomplete="off" placeholder="ex: mon-service-api" required>
+                    <small>Minuscules, chiffres et tirets uniquement (standard Google Cloud).</small>
+                  </div>
+
+                  <div class="form-field form-field-wide">
+                    <label for="image">URL de l'image de conteneur</label>
+                    <input id="image" name="image" type="text" maxlength="255" autocomplete="off" placeholder="ex: nginx:alpine ou gcr.io/google-samples/hello-app:1.0" required>
+                    <small>Image issue de Docker Hub, Google Container Registry (GCR) ou Artifact Registry.</small>
+                  </div>
+
+                  <!-- Région Google Cloud -->
+                  <div class="form-field form-field-wide">
+                    <label for="region">Région Google Cloud (Emplacement)</label>
+                    <select id="region" name="region">
+                      <option value="europe-west9" selected>europe-west9 (Paris, France)</option>
+                      <option value="europe-west1">europe-west1 (Belgique)</option>
+                      <option value="europe-west3">europe-west3 (Francfort, Allemagne)</option>
+                      <option value="europe-west4">europe-west4 (Eemshaven, Pays-Bas)</option>
+                      <option value="us-central1">us-central1 (Iowa, États-Unis)</option>
+                      <option value="us-east1">us-east1 (Caroline du Sud, États-Unis)</option>
+                      <option value="asia-northeast1">asia-northeast1 (Tokyo, Japon)</option>
+                    </select>
+                  </div>
+
+                  <!-- Allocation matérielle (vCPU et RAM) -->
+                  <div class="form-field">
+                    <label for="cpus">Allocation processeur (vCPU)</label>
+                    <select id="cpus" name="cpus">
+                      <option value="0.5">0.5 vCPU</option>
+                      <option value="1" selected>1 vCPU (Recommandé)</option>
+                      <option value="2">2 vCPU</option>
+                      <option value="4">4 vCPU</option>
+                    </select>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="memory-mb">Mémoire vive (RAM)</label>
+                    <select id="memory-mb" name="memoryMb">
+                      <option value="256">256 Mo</option>
+                      <option value="512" selected>512 Mo (Standard)</option>
+                      <option value="1024">1 Go (1024 Mo)</option>
+                      <option value="2048">2 Go (2048 Mo)</option>
+                      <option value="4096">4 Go (4096 Mo)</option>
+                    </select>
+                  </div>
+
+                  <!-- Port interne et Ingress -->
+                  <div class="form-field">
+                    <label for="internal-port">Port interne du conteneur</label>
+                    <input id="internal-port" name="internalPort" type="number" value="8080" min="1" max="65535" step="1" required>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="ingress">Entrée réseau (Ingress)</label>
+                    <select id="ingress" name="ingress">
+                      <option value="all" selected>Tous les trafics (Accès public direct)</option>
+                      <option value="internal">Interne uniquement</option>
+                    </select>
+                  </div>
+
+                  <!-- Autoscaling & Concurrence -->
+                  <div class="form-field">
+                    <label for="min-instances">Instances minimales (Min scale)</label>
+                    <select id="min-instances" name="minInstances">
+                      <option value="0" selected>0 (Passage à l'échelle zéro)</option>
+                      <option value="1">1 (Toujours actif)</option>
+                      <option value="2">2 (Haute disponibilité)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="max-instances">Instances maximales (Max scale)</label>
+                    <input id="max-instances" name="maxInstances" type="number" value="10" min="1" max="100" step="1" required>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="concurrency">Concurrence max (Req / instance)</label>
+                    <input id="concurrency" name="concurrency" type="number" value="80" min="1" max="1000" step="1" required>
+                  </div>
+
+                  <div class="form-field">
+                    <label for="timeout-seconds">Délai d'expiration (Timeout s)</label>
+                    <input id="timeout-seconds" name="timeoutSeconds" type="number" value="300" min="1" max="3600" step="1" required>
+                  </div>
+
+                  <!-- Variables d'environnement -->
+                  <div class="form-field form-field-wide env-vars-container">
+                    <label>Variables d'environnement</label>
+                    <div id="env-vars-list">
+                      <div class="env-var-row">
+                        <input type="text" placeholder="NOM (ex: NODE_ENV)" class="env-key" autocomplete="off">
+                        <span>=</span>
+                        <input type="text" placeholder="VALEUR (ex: production)" class="env-val" autocomplete="off">
+                      </div>
+                    </div>
+                    <button class="button button-small button-outline add-env-btn" id="add-env-btn" type="button">+ Ajouter une variable</button>
+                  </div>
+                </div>
+
+                <button class="button button-primary deploy-submit" id="deploy-submit" type="submit">Créer et déployer le service web 🚀</button>
+              </fieldset>
+            </form>
+
+            <p class="deploy-status" id="deploy-status" role="status" aria-live="polite"></p>
+
+            <div class="deploy-result" id="deploy-result" hidden>
+              <span class="eyebrow">RÉVISION CLOUD RUN DÉPLOYÉE</span>
+              <div class="deploy-urls-box">
+                <a id="deploy-url" target="_blank" rel="noopener noreferrer">Ouvrir le service web ↗</a>
+              </div>
+              <p>Révision : <span id="machine-id"></span></p>
+            </div>
+
+            <p class="panel-note"><span aria-hidden="true">i</span> Routage 100% autonome via le reverse-proxy local.</p>
+            <noscript><p class="server-status">Activez JavaScript pour utiliser la console Google Cloud.</p></noscript>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section Monitoring & Métriques (Google Cloud Monitoring) -->
+      <section class="section-space" id="monitoring-section" aria-labelledby="monitoring-title">
+        <div class="container">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">GOOGLE CLOUD MONITORING</p>
+              <h2 id="monitoring-title">Métriques en temps réel</h2>
+            </div>
+            <p class="section-intro">Surveillance continue des ressources processeur (vCPU), mémoire vive allouée et requêtes traitées.</p>
+          </div>
+
+          <div class="monitoring-grid">
+            <div class="metric-card">
+              <div class="metric-card-header">
+                <span>UTILISATION PROCESSEUR (vCPU)</span>
+                <strong id="metric-cpu-val">0.0%</strong>
+              </div>
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill progress-bar-cpu" id="metric-cpu-bar" style="width: 0%"></div>
+              </div>
+              <small>Charge processeur moyenne calculée sur les conteneurs actifs</small>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card-header">
+                <span>MÉMOIRE VIVE ALLOUÉE</span>
+                <strong id="metric-mem-val">0 Mo</strong>
+              </div>
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill progress-bar-mem" id="metric-mem-bar" style="width: 0%"></div>
+              </div>
+              <small>Empreinte mémoire vive consommée par vos microservices</small>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-card-header">
+                <span>REQUÊTES HTTP TRAITÉES</span>
+                <strong id="metric-req-val">0 req</strong>
+              </div>
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill progress-bar-net" id="metric-req-bar" style="width: 5%"></div>
+              </div>
+              <small>Volume de trafic routé par le reverse-proxy interne</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section Journaux Cloud (Google Cloud Logging) -->
+      <section class="section-space" id="logs-section" aria-labelledby="logs-title">
+        <div class="container">
+          <div class="section-heading-split">
+            <div>
+              <p class="eyebrow">GOOGLE CLOUD LOGGING</p>
+              <h2 id="logs-title">Journaux d'activité en direct</h2>
+            </div>
+            <div class="logs-controls">
+              <label for="logs-service-select" class="visually-hidden">Sélectionner le service :</label>
+              <select id="logs-service-select" aria-label="Sélectionner le service"></select>
+              <button class="button button-small button-outline" id="clear-logs-btn" type="button">Effacer l'affichage</button>
+            </div>
+          </div>
+
+          <div class="log-stream-window" id="logs-console" aria-live="polite">
+            <div class="log-row log-info">
+              <span class="log-time">00:00:00</span>
+              <span class="log-badge log-badge-info">INFO</span>
+              <span class="log-text">Console Google Cloud Web Services prête. En attente de requêtes.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ & Documentation -->
+      <section class="faq-section section-space" id="questions" aria-labelledby="faq-title">
+        <div class="container faq-layout">
+          <div>
+            <p class="eyebrow">DOCUMENTATION</p>
+            <h2 id="faq-title">Questions fréquentes.</h2>
+          </div>
+          <div class="faq-list">
+            <details>
+              <summary>Le service est-il entièrement gratuit et sans engagement ?</summary>
+              <p>Oui, 100% gratuit et libre d'accès. Ce système fonctionne en parfaite autonomie sur votre environnement local ou serveur dédié. Zéro frais, aucun abonnement requis.</p>
+            </details>
+            <details>
+              <summary>Quels conteneurs puis-je déployer ?</summary>
+              <p>N'importe quelle image de conteneur web (Nginx, Node.js, Python, Golang, PHP, Java, etc.) écoutant sur un port TCP.</p>
+            </details>
+            <details>
+              <summary>Comment fonctionne le passage à l'échelle vers zéro (Scale-to-zero) ?</summary>
+              <p>Lorsque les instances minimales sont définies à 0, le conteneur s'endort lorsqu'aucun trafic n'est reçu afin d'économiser 100% des ressources système.</p>
+            </details>
+            <details>
+              <summary>Comment accéder à mon service web ?</summary>
+              <p>Dès le déploiement terminé, cliquez sur « Ouvrir le service web » ou accédez à l'URL dédiée /services/nom-du-service/.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <a class="brand footer-brand" href="#accueil" aria-label="Google Cloud Web Service, retour en haut">
+          <span class="gcp-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z" fill="#4285F4"/>
+            </svg>
+          </span>
+          <span class="brand-text">GOOGLE CLOUD <span class="brand-light">· WEB SERVICES</span></span>
+        </a>
+        <p>Console de déploiement Cloud Run autonome. Totalement indépendante et sans facturation.</p>
+        <a class="footer-top" href="#accueil">Retour en haut <span aria-hidden="true">↑</span></a>
+      </div>
+    </footer>
+  </body>
+</html>
